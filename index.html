@@ -1,17 +1,284 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-
+<!doctype html>
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hami Lemon</title>
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="referrer" content="never">
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.10/vue.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/0.27.2/axios.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.3.3/echarts.common.min.js"></script>
+    <title>Index</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        .card {
+            min-width: 300px;
+            width: 60%;
+            margin: 50px auto;
+            box-shadow: 1px 1px 10px gray;
+            border-radius: 8px;
+            padding: 10px 6px;
+        }
+
+        .header {
+            text-align: center;
+            display: flex;
+            flex: 1;
+        }
+
+        .face {
+            flex: 1;
+            text-align: center;
+        }
+
+        .face img {
+            width: 80%;
+            max-width: 120px;
+        }
+
+        .info {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info .name {
+            font-size: 20px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .info .sign {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .chart {
+            margin-top: 10px;
+            text-align: center;
+            height: 340px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart .tab {
+            flex: 1;
+            display: flex;
+        }
+
+        .chart :hover {
+            cursor: pointer;
+        }
+
+        .chart .tab * {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000000;
+            margin-top: 1px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .chart .tab .selected {
+            color: #ffffff;
+            background: #00aeec;
+        }
+
+        .chart .content {
+            flex: 9;
+        }
+    </style>
 </head>
-
 <body>
-    <h1>这是Hami Lemon的个人网站</h1>
-    <div>有空再来写点东西</div>
-
+<div id="body">
+    <div class="card" v-for="anchor in anchors">
+        <div class="header">
+            <div class="face">
+                <a href="" :href="'https://space.bilibili.com/'+anchor.mid">
+                    <img src="" alt="头像" :src="anchor.face">
+                </a>
+            </div>
+            <div class="info">
+                <div class="name">{{anchor.name}}</div>
+                <div class="sign">{{anchor.sign}}</div>
+            </div>
+        </div>
+        <div class="chart">
+            <div class="tab">
+                <div class="last_day">昨日数据</div>
+                <div class="selected today">今日数据</div>
+            </div>
+            <div class="content" :id="anchor.mid"></div>
+        </div>
+    </div>
+</div>
 </body>
 
+<script>
+    let host = "http://124.221.242.91"
+    let dataset = []
+    let charts = []
+
+    function init() {
+        let contents = document.querySelectorAll(".chart .content")
+        for (let i = 0; i < contents.length; i++) {
+            let id = contents[i].id
+            console.log(id)
+            axios.get(host + "/getUser/" + id)
+                .then(function (resp) {
+                    resp = resp.data
+                    if (resp.code !== 0) {
+                        console.log(resp.msg)
+                        return
+                    }
+                    dataset[id] = resp
+                    showData(id, true)
+                })
+        }
+    }
+
+    function showData(mid, isLive) {
+        let chart = echarts.init(document.getElementById(mid))
+        charts[mid] = chart
+        let data = dataset[mid]
+        if (isLive) {
+            data = data.live
+        } else {
+            data = data.last
+        }
+        let x = []
+        let fans = []
+        let guard = []
+        console.log(data)
+        for (let i = 0; i < data.infos.length; i++) {
+            let d = new Date(data.infos[i].timePoint * 1000)
+            let m = d.getMinutes()
+            if (m < 10) {
+                m = "0" + m
+            }
+            let h = d.getHours()
+            if (h < 10) {
+                h = "0" + h
+            }
+            x.push(h + ":" + m)
+            fans.push(data.infos[i].fans)
+            guard.push(data.infos[i].guard)
+        }
+        let option = {
+            title: {
+                text: data.start,
+            },
+            tooltip: {
+                trigger: "axis",
+            },
+            legend: {},
+            xAxis: [
+                {
+                    type: 'category',
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    data: x
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '粉丝数',
+                    position: 'left'
+                },
+                {
+                    type: 'value',
+                    name: "舰长数",
+                    position: 'right'
+                }
+            ],
+            series: [
+                {
+                    name: '粉丝数',
+                    type: 'line',
+                    smooth: true,
+                    yAxisIndex: 0,
+                    data: fans
+                },
+                {
+                    name: '舰长数',
+                    type: 'line',
+                    smooth: true,
+                    yAxisIndex: 1,
+                    data: guard
+                }
+            ]
+        }
+        chart.setOption(option)
+    }
+
+    let vue = new Vue({
+        el: "#body",
+        data: {
+            anchors: []
+        },
+        created: function () {
+            axios.get(host + "/anchors")
+                .then(function (resp) {
+                    resp = resp.data
+                    if (resp.code !== 0) {
+                        alert(resp.msg)
+                        return
+                    }
+                    console.log(resp)
+                    for (let i = 0; i < resp.anchors.length; i++) {
+                        vue.$data.anchors.push(resp.anchors[i])
+                    }
+                })
+        }
+    })
+    setTimeout(function () {
+        init()
+        let today_tabs = document.querySelectorAll(".tab .today")
+        for (let i = 0; i < today_tabs.length; i++) {
+            today_tabs[i].onclick = function () {
+                if (today_tabs[i].classList.contains("selected")) {
+                    return
+                }
+                let children = today_tabs[i].parentNode.children
+                for (let j = 0; j < children.length; j++) {
+                    children[j].classList.remove("selected")
+                }
+                today_tabs[i].classList.add("selected")
+                let id = today_tabs[i].parentNode.parentNode.querySelector(".content").id
+                showData(id, true)
+            }
+        }
+        let last_tabs = document.querySelectorAll(".tab .last_day")
+        for (let i = 0; i < last_tabs.length; i++) {
+            last_tabs[i].onclick = function () {
+                if (last_tabs[i].classList.contains("selected")) {
+                    return
+                }
+                let children = last_tabs[i].parentNode.children
+                for (let j = 0; j < children.length; j++) {
+                    children[j].classList.remove("selected")
+                }
+                last_tabs[i].classList.add("selected")
+                let id = last_tabs[i].parentNode.parentNode.querySelector(".content").id
+                showData(id, false)
+            }
+        }
+        window.onresize = function () {
+            for (let k in charts) {
+                charts[k].resize()
+            }
+        }
+    }, 500)
+</script>
 </html>
