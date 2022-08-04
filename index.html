@@ -5,39 +5,39 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="shortcut icon" href="favicon.ico">
-    <title>🥰🥰🥰🥰🥰</title>
+    <meta name="referrer" content="never">
+    <title>关注嘉然，顿顿解馋</title>
     <style>
-        * {
-            padding: 0;
-            margin: 0;
+        #container {
+            width: 80%;
+            margin: 100px auto;
         }
 
-        body {
-            overflow: hidden;
+        h1 {
+            text-align: center;
         }
 
-        #iframe {
+        img {
+            width: 200px;
+            display: flex;
+            margin: 30px auto;
+        }
+
+        #container div {
             width: 100%;
-            border: none;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-<iframe id="iframe" src="http://124.221.242.91/eniac">
-</iframe>
-</body>
+<div id="container">
+    <h1>关注嘉然，顿顿解馋</h1>
+    <div>
+        然然可爱捏
+    </div>
+</div>
 <script>
-    let iframe = document.getElementById("iframe")
-
-    function setHeight() {
-        let h = document.documentElement.clientHeight || document.body.clientHeight
-        iframe.style.height = h + "px"
-    }
-
-    window.onresize = function () {
-        setHeight()
-    }
-    setHeight()
+    location.href = "http://124.221.242.91/eniac"
 </script>
+</body>
 </html>
